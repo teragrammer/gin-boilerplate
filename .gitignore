@@ -23,3 +23,14 @@ go.work.sum
 
 # env file
 .env
+env.json
+
+.idea
+
+.logs/*
+!.logs/.gitkeep
+
+storage/*
+!storage/.gitkeep
+
+main
