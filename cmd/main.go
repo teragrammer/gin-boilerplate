@@ -1,9 +1,9 @@
 package main
 
 import (
-	"gin-boilerplate/internal"
-	"gin-boilerplate/internal/middlewares"
-	"gin-boilerplate/internal/routes"
+	"gin-boilerplate/pkg"
+	middlewares2 "gin-boilerplate/pkg/middlewares"
+	"gin-boilerplate/pkg/routes"
 	"log"
 	"os"
 	"strconv"
@@ -25,13 +25,13 @@ func main() {
 	log.SetOutput(file)
 
 	// load boot configuration file
-	var boot = internal.InitBoot("env.json", nil)
+	var boot = pkg.InitBoot("env.json", nil)
 
 	// rate limit
-	boot.Engine.Use(middlewares.RateLimitMiddleware(boot))
+	boot.Engine.Use(middlewares2.RateLimitMiddleware(boot))
 
 	// CORS
-	boot.Engine.Use(middlewares.CORSMiddleware())
+	boot.Engine.Use(middlewares2.CORSMiddleware())
 
 	// routes
 	routes.V1Routes(boot)
