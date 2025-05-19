@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
+	"gin-boilerplate/configs"
 	"gin-boilerplate/database/migration"
-	"gin-boilerplate/internal/configs"
 )
 
 func RunMigrations() {
