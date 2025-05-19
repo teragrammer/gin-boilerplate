@@ -21,15 +21,25 @@ $ docker compose up -d
 $ sh cmd/docker/start.sh
 ```
 
+- To Update all Packages (Optional)
+```
+$ go get -u ./...
+```
+
 - Install dependencies
 ```
-$ go mod tidy
 $ go mod download
+$ go mod tidy
 ```
 
 - Migration & Seed
 ```
-$ clear && go run ./cmd/database/migrate.go
+$ clear && go run ./cmd/database/migrate.go [-seed]
+```
+
+- Unit Test
+```
+$ clear && go clean -testcache && go test ./... -v
 ```
 
 - Running for Development Mode
