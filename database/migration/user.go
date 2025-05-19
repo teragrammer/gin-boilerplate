@@ -16,15 +16,15 @@ type User struct {
 	Address              *utilities.NullString `gorm:"type:TINYTEXT" json:"address"`
 	BirthDate            *utilities.NullTime   `gorm:"type:date" json:"birth_date"`
 	Phone                *utilities.NullString `gorm:"type:varchar(50);index;unique" json:"phone"`
-	IsPhoneVerified      *utilities.NullBool   `gorm:"type:bool;default:false" json:"is_phone_verified"`
+	IsPhoneVerified      *utilities.NullBool   `gorm:"type:bool;default:false" json:"-"`
 	Email                *utilities.NullString `gorm:"type:varchar(256);index;unique" json:"email"`
-	IsEmailVerified      *utilities.NullBool   `gorm:"type:bool;default:false" json:"is_email_verified"`
+	IsEmailVerified      *utilities.NullBool   `gorm:"type:bool;default:false" json:"-"`
 	RoleId               uint                  `gorm:"not null" json:"role_id"`
 	Username             string                `gorm:"type:varchar(50);index;unique" json:"username"`
 	Password             string                `gorm:"type:TINYTEXT" json:"-"`
 	Status               string                `gorm:"type:ENUM('Pending', 'Activated', 'Suspended', 'Deleted', 'Deactivated');default:Activated" json:"status"`
-	LoginTries           uint                  `gorm:"type:uint;default:0" json:"login_tries"`
-	FailedLoginExpiredAt *utilities.NullTime   `gorm:"type:datetime" json:"failed_login_expired_at"`
+	LoginTries           uint                  `gorm:"type:uint;default:0" json:"-"`
+	FailedLoginExpiredAt *utilities.NullTime   `gorm:"type:datetime" json:"-"`
 	Comments             *utilities.NullString `gorm:"type:TINYTEXT" json:"comments"`
 	CreatedAt            time.Time             `gorm:"type:datetime" gorm:"index" json:"created_at"`
 	UpdatedAt            time.Time             `gorm:"type:datetime" json:"updated_at"`
