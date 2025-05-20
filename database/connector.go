@@ -1,7 +1,7 @@
 package database
 
 import (
-	"gin-boilerplate/internal/configs"
+	"gin-boilerplate/configs"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"strconv"
