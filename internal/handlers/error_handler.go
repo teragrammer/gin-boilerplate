@@ -1,8 +1,11 @@
 package handlers
 
 import (
-	"gin-boilerplate/internal/configs"
+	"gin-boilerplate/configs"
+	"gin-boilerplate/internal/utilities"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"reflect"
 )
 
 type ErrorKeyValuePair struct {
@@ -10,7 +13,7 @@ type ErrorKeyValuePair struct {
 	Message string `json:"message"`
 }
 
-func FormValidationHandler(c *gin.Context, obj any) gin.H {
+func ValidationHandler(c *gin.Context, obj any) gin.H {
 	if err := c.ShouldBind(obj); err != nil {
 		return gin.H{
 			"code":    configs.Errors().E3.Code,
@@ -18,7 +21,28 @@ func FormValidationHandler(c *gin.Context, obj any) gin.H {
 		}
 	}
 
-	// TODO
+	validate := utilities.NewExtendedValidator()
+	translation := validate.GetTranslation("en")
+	errValidate := validate.Validate(obj)
+
+	if errValidate != nil {
+		var e []interface{}
+
+		for _, err := range errValidate.(validator.ValidationErrors) {
+			field, _ := reflect.TypeOf(obj).Elem().FieldByName(err.Field())
+
+			e = append(e, ErrorKeyValuePair{
+				Field:   field.Tag.Get("json"),
+				Message: err.Translate(translation),
+			})
+		}
+
+		return gin.H{
+			"code":    configs.Errors().E4.Code,
+			"message": configs.Errors().E4.Message,
+			"errors":  e,
+		}
+	}
 
 	return nil
 }
