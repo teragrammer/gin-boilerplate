@@ -13,3 +13,9 @@ func DatetimeUTC(datetime string, layout string, timeZone string) (time.Time, er
 	// Convert local time to UTC
 	return localTime.UTC(), nil
 }
+
+func AddDay(datetime time.Time, day int) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.AddDate(0, 0, day)
+}
