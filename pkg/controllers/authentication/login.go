@@ -6,6 +6,7 @@ import (
 	"gin-boilerplate/database/migration"
 	"gin-boilerplate/internal/handlers"
 	"gin-boilerplate/internal/utilities"
+	"gin-boilerplate/pkg/middlewares"
 	"gin-boilerplate/pkg/repositories"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -13,7 +14,10 @@ import (
 )
 
 func Login(h configs.BootHandlers) func(c *gin.Context) {
-	settingSlugs := []string{"mx_log_try", "tkn_exp"}
+	settingSlugs := []string{
+		"mx_log_try", "lck_prd",
+		"tkn_lth", "tkn_exp", "tfa_req",
+	}
 
 	type Form struct {
 		Username string `form:"username" validate:"required" json:"username"`
@@ -41,8 +45,8 @@ func Login(h configs.BootHandlers) func(c *gin.Context) {
 			if loginExpiredAt >= currentTime {
 				// check if failed login tries exceed
 				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
-					"code":    configs.Errors().E10,
-					"message": configs.Errors().E10,
+					"code":    configs.Errors().E10.Code,
+					"message": configs.Errors().E10.Message,
 				})
 				return
 			} else {
@@ -53,37 +57,86 @@ func Login(h configs.BootHandlers) func(c *gin.Context) {
 						FailedLoginExpiredAt: &utilities.NullTime{NullTime: sql.NullTime{Time: time.Now(), Valid: true}},
 					}).Error; err != nil {
 					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-						"code":    configs.Errors().E7,
-						"message": configs.Errors().E7,
+						"code":    configs.Errors().E7.Code,
+						"message": configs.Errors().E7.Message,
 					})
 					return
 				}
 			}
 		}
 
-		_, err := utilities.VerifyHash(form.Password, user.Password)
+		settings, err := repositories.Settings(h.DB, settingSlugs)
 		if err != nil {
-			// TODO
-			_, err = repositories.Settings(h.DB, settingSlugs)
-			if err != nil {
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"code":    configs.Errors().E8,
-					"message": configs.Errors().E8,
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"code":    configs.Errors().E8.Code,
+				"message": configs.Errors().E8.Message,
+			})
+			return
+		}
+
+		_, err = utilities.VerifyHash(form.Password, user.Password)
+		if err != nil {
+			// increase the login attempt failed
+			h.DB.Exec("UPDATE users SET login_tries = login_tries + 1 WHERE id = ?", user.Id)
+
+			totalLoginTries := user.LoginTries + 1
+			if totalLoginTries >= uint(settings.MxLogTry) {
+				h.DB.Model(&migration.User{}).Where("id = ?", user.Id).
+					Updates(migration.User{FailedLoginExpiredAt: &utilities.NullTime{NullTime: sql.NullTime{Time: utilities.AddMinute(time.Now(), settings.LckPrd), Valid: true}}})
+
+				// too many login attempts
+				c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+					"code":    configs.Errors().E11.Code,
+					"message": configs.Errors().E11.Message,
 				})
 				return
 			}
 
-			// TODO
-			// increase the login attempt failed
-
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("password", "The username and password do not match"))
 			return
 		}
+
+		// add role information
+		if err := h.DB.Where("id", user.RoleId).First(&user.Role).Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"code": configs.Errors().E9.Code, "message": configs.Errors().E9.Message})
+			return
+		}
+
+		// generate authentication token
+		token, err := repositories.GenerateToken(h.DB, settings, user.Id)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+				"code":    configs.Errors().E7.Code,
+				"message": configs.Errors().E7.Message,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"user":       user,
+			"credential": token,
+		})
 	}
 }
 
 func Logout(h configs.BootHandlers) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		authentication, _ := c.Get("credential")
+		var id = authentication.(middlewares.Credential).Token.Id
 
+		var result = h.DB.
+			Where("id = ?", id).
+			Delete(&migration.AuthenticationToken{})
+		if err := result.Error; err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"code":    configs.Errors().E7.Code,
+				"message": configs.Errors().E7.Message,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"data": result.RowsAffected,
+		})
 	}
 }
