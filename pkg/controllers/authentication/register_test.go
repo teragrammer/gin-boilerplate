@@ -14,10 +14,10 @@ import (
 	"testing"
 )
 
-var env = "test"
-var bootstrap = pkg.InitBoot("../../../env.json", &env)
-
 func TestRegisterHttp(t *testing.T) {
+	var env = "test"
+	var bootstrap = pkg.InitBoot("../../../env.json", &env)
+
 	// Set Gin to Test mode
 	gin.SetMode(gin.TestMode)
 
