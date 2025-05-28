@@ -19,3 +19,33 @@ func AddDay(datetime time.Time, day int) time.Time {
 	// time.Now()
 	return datetime.AddDate(0, 0, day)
 }
+
+func SubtractDay(datetime time.Time, day int) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.AddDate(0, 0, -day)
+}
+
+func AddHour(datetime time.Time, hour int64) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.Add(time.Duration(hour) * time.Hour)
+}
+
+func SubtractHour(datetime time.Time, hour int64) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.Add(-time.Duration(hour) * time.Hour)
+}
+
+func AddMinute(datetime time.Time, minute int64) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.Add(time.Duration(minute) * time.Minute)
+}
+
+func SubtractMinute(datetime time.Time, minute int64) time.Time {
+	// Current date and time
+	// time.Now()
+	return datetime.Add(-time.Duration(minute) * time.Minute)
+}
