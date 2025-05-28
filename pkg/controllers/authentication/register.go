@@ -32,11 +32,11 @@ func Register(h configs.BootHandlers) func(c *gin.Context) {
 			return
 		}
 
-		setting, err := repositories.Settings(h.DB, settingSlugs)
+		settings, err := repositories.Settings(h.DB, settingSlugs)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"code":    configs.Errors().E8,
-				"message": configs.Errors().E8,
+				"code":    configs.Errors().E8.Code,
+				"message": configs.Errors().E8.Message,
 			})
 			return
 		}
@@ -104,7 +104,7 @@ func Register(h configs.BootHandlers) func(c *gin.Context) {
 		}
 
 		// generate authentication token
-		token, err := repositories.GenerateToken(h.DB, setting, user.Id)
+		token, err := repositories.GenerateToken(h.DB, settings, user.Id)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
 				"code":    configs.Errors().E7.Code,
