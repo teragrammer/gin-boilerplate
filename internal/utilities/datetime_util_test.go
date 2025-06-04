@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"testing"
 	"time"
@@ -114,4 +115,29 @@ func TestAddMinute(t *testing.T) {
 	}
 
 	assert.Equal(t, parsedAddedDateTime.Format(layout), addedMinutes)
+}
+
+func TestSubtractMinute(t *testing.T) {
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	layout := "2006-01-02 15:04"
+	currentDateTime := "2023-06-15 13:15"
+	subtractedMinutes := "2023-06-15 13:00"
+
+	// Parse the MySQL datetime string into a time.Time object
+	parsedTime, err := time.Parse(layout, currentDateTime)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	addedDateTime := SubtractMinute(parsedTime, 15)
+	parsedAddedDateTime, err := time.Parse(layout, addedDateTime.Format(layout))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	assert.Equal(t, parsedAddedDateTime.Format(layout), subtractedMinutes)
 }
