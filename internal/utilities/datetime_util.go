@@ -49,3 +49,20 @@ func SubtractMinute(datetime time.Time, minute int64) time.Time {
 	// time.Now()
 	return datetime.Add(-time.Duration(minute) * time.Minute)
 }
+
+// FromDateTimeToDate takes a date-time string in the format "2006-01-02 15:04:05"
+// and returns the date part as a string in the format "2006-01-02".
+// sample usage: FromDateTimeToDate("your-date-time")
+// it converts to UTC format
+func FromDateTimeToDate(datetime string, timeZone string) (string, error) {
+	// Parse the time string into a time.Time object
+	loc, _ := time.LoadLocation(timeZone) // Use "Local" for local time
+	localTime, err := time.ParseInLocation("2006-01-02 15:04:05", datetime, loc)
+	if err != nil {
+		return time.Now().String(), err
+	}
+
+	// Format the time.Time object to a string with the desired date format
+	dateStr := localTime.UTC().Format("2006-01-02")
+	return dateStr, nil
+}

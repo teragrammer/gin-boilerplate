@@ -141,3 +141,16 @@ func TestSubtractMinute(t *testing.T) {
 
 	assert.Equal(t, parsedAddedDateTime.Format(layout), subtractedMinutes)
 }
+
+func TestFormatDate(t *testing.T) {
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	dateOnlyFormat, err := FromDateTimeToDate("2024-01-12 15:04:05", "Asia/Manila")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	assert.Equal(t, dateOnlyFormat, "2024-01-12")
+}
