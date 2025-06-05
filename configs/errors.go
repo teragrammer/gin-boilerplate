@@ -24,6 +24,8 @@ type ErrorId struct {
 	E16 ErrorContent
 	E17 ErrorContent
 	E18 ErrorContent
+	E19 ErrorContent
+	E20 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -47,5 +49,7 @@ func Errors() ErrorId {
 		E16: ErrorContent{Code: "e16", Message: "The validity of the token is not valid"},
 		E17: ErrorContent{Code: "e17", Message: "Token timestamp could not be processed"},
 		E18: ErrorContent{Code: "e18", Message: "The token is no longer valid"},
+		E19: ErrorContent{Code: "e19", Message: "No OTP is necessary for this process"},
+		E20: ErrorContent{Code: "e20", Message: "There is an issue with your email configuration"},
 	}
 }
