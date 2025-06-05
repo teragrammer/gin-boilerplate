@@ -14,18 +14,12 @@ import (
 )
 
 func Login(h configs.BootHandlers) func(c *gin.Context) {
-	settingSlugs := []string{
-		"mx_log_try", "lck_prd",
-		"tkn_lth", "tkn_exp", "tfa_req",
-	}
-
-	type Form struct {
-		Username string `form:"username" validate:"required" json:"username"`
-		Password string `form:"password" validate:"required" json:"password"`
-	}
-
 	return func(c *gin.Context) {
-		var form Form
+		var form struct {
+			Username string `form:"username" validate:"required" json:"username"`
+			Password string `form:"password" validate:"required" json:"password"`
+		}
+
 		e := handlers.ValidationHandler(c, &form)
 		if e != nil {
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, e)
@@ -65,7 +59,10 @@ func Login(h configs.BootHandlers) func(c *gin.Context) {
 			}
 		}
 
-		settings, err := repositories.Settings(h.DB, settingSlugs)
+		settings, err := repositories.Settings(h.DB, []string{
+			"mx_log_try", "lck_prd",
+			"tkn_lth", "tkn_exp", "tfa_req",
+		})
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"code":    configs.Errors().E8.Code,
