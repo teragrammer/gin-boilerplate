@@ -16,6 +16,17 @@ func TestGenerateRandomString(t *testing.T) {
 	assert.Equal(t, len(random), keyLength)
 }
 
+func TestGenerateRandomNumber(t *testing.T) {
+	keyLength := 8
+	random, err := GenerateRandomNumber(keyLength)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	
+	assert.Equal(t, len(random), keyLength)
+}
+
 func TestHash(t *testing.T) {
 	data := "123456"
 	generated := "$argon2id$v=19$m=65536,t=1,p=6$ZYw8nPdCJwLql+boKoEO4w$VvtqLRPkn583kOik8YW04RC0G3b0LOkoBCdteVzOuNs"
