@@ -15,7 +15,7 @@ func Register(h configs.BootHandlers) func(c *gin.Context) {
 	settingSlugs := []string{"tkn_lth", "tkn_exp", "tfa_req"}
 
 	return func(c *gin.Context) {
-		type Form struct {
+		var form struct {
 			FirstName  string  `form:"first_name" validate:"required,max=100" json:"first_name"`
 			MiddleName *string `form:"middle_name" validate:"omitempty,max=100" json:"middle_name"`
 			LastName   string  `form:"last_name" validate:"required,max=100" json:"last_name"`
@@ -25,7 +25,6 @@ func Register(h configs.BootHandlers) func(c *gin.Context) {
 			Password   string  `form:"password" validate:"required,max=28,min=6,password" json:"password"`
 		}
 
-		var form Form
 		e := handlers.ValidationHandler(c, &form)
 		if e != nil {
 			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, e)
