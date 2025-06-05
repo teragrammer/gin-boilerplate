@@ -11,25 +11,62 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/crypto/sha3"
 	"io"
-	"math/big"
+	"log"
 	"strings"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+const numset = "1234567890"
 
 func GenerateRandomString(length int) (string, error) {
 	result := make([]byte, length)
-	charsetLength := big.NewInt(int64(len(charset)))
-
-	for i := 0; i < length; i++ {
-		num, err := rand.Int(rand.Reader, charsetLength)
-		if err != nil {
-			return "", err
+	bufferSize := int(float64(length) * 1.3)
+	var err error
+	for i, j, randomBytes := 0, 0, []byte{}; i < length; j++ {
+		if j%bufferSize == 0 {
+			randomBytes, err = SecureRandomBytes(bufferSize)
+			if err != nil {
+				return "", err
+			}
 		}
-		result[i] = charset[num.Int64()]
+		if idx := int(randomBytes[j%length] & 63); idx < len(charset) {
+			result[i] = charset[idx]
+			i++
+		}
 	}
 
 	return string(result), nil
+}
+
+func GenerateRandomNumber(length int) (string, error) {
+	result := make([]byte, length)
+	bufferSize := int(float64(length) * 1.3)
+	var err error
+	for i, j, randomBytes := 0, 0, []byte{}; i < length; j++ {
+		if j%bufferSize == 0 {
+			randomBytes, err = SecureRandomBytes(bufferSize)
+			if err != nil {
+				return "", err
+			}
+		}
+		if idx := int(randomBytes[j%length] & 63); idx < len(numset) {
+			result[i] = numset[idx]
+			i++
+		}
+	}
+
+	return string(result), nil
+}
+
+// SecureRandomBytes returns the requested number of bytes using crypto/rand
+func SecureRandomBytes(length int) ([]byte, error) {
+	var randomBytes = make([]byte, length)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		log.Fatal("Unable to generate random bytes")
+		return nil, err
+	}
+	return randomBytes, nil
 }
 
 func Hash(data string) (string, error) {
