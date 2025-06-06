@@ -42,19 +42,19 @@ func (controller *TFAController) Send(c *gin.Context) {
 		return
 	}
 
+	// generate the random code for tfa
+	code, err := utilities.GenerateRandomNumber(8)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E7.Code,
+			"message": configs.Errors().E7.Message,
+		})
+		return
+	}
+
 	var nextTryAt = utilities.AddMinute(time.Now(), 2)
 	var tfa migration.TwoFactorAuthentication
 	if err := controller.h.DB.Where("token_id", credential.(middlewares.Credential).Token.Id).First(&tfa).Error; err != nil {
-		// generate the random code for tfa
-		code, err := utilities.GenerateRandomNumber(8)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-				"code":    configs.Errors().E7.Code,
-				"message": configs.Errors().E7.Message,
-			})
-			return
-		}
-
 		tfa = migration.TwoFactorAuthentication{
 			TokenId:    credential.(middlewares.Credential).Token.Id,
 			Code:       code,
@@ -69,8 +69,31 @@ func (controller *TFAController) Send(c *gin.Context) {
 			return
 		}
 	} else if tfa.NextSendAt != nil && tfa.NextSendAt.Valid {
+		if time.Now().Unix() < tfa.NextSendAt.Time.Unix() {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+				"code":    configs.Errors().E21.Code,
+				"message": configs.Errors().E21.Message,
+			})
+			return
+		}
 
+		controller.h.DB.Model(&migration.TwoFactorAuthentication{}).Where("id = ?", tfa.Id).
+			Updates(migration.TwoFactorAuthentication{
+				Code:       code,
+				ExpiredAt:  &utilities.NullTime{NullTime: sql.NullTime{Valid: true, Time: utilities.AddMinute(time.Now(), 5)}},
+				NextSendAt: &utilities.NullTime{NullTime: sql.NullTime{Valid: true, Time: nextTryAt}},
+			})
 	}
+
+	if controller.h.Env.Environment == "production" {
+		// TODO
+		// send email with tfa code
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"id":       tfa.Id,
+		"next_try": nextTryAt,
+	})
 }
 
 func (controller *TFAController) Validate(c *gin.Context) {
