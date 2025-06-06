@@ -26,6 +26,7 @@ type ErrorId struct {
 	E18 ErrorContent
 	E19 ErrorContent
 	E20 ErrorContent
+	E21 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -41,7 +42,6 @@ func Errors() ErrorId {
 		E9:  ErrorContent{Code: "e9", Message: "The information you are looking for is not available"},
 		E10: ErrorContent{Code: "e10", Message: "The system has detected too many incorrect login attempts"},
 		E11: ErrorContent{Code: "e11", Message: "Your account has been temporarily locked due to multiple login attempts"},
-
 		E12: ErrorContent{Code: "e12", Message: "Token format does not meet requirements"},
 		E13: ErrorContent{Code: "e13", Message: "The token has an incorrect length"},
 		E14: ErrorContent{Code: "e14", Message: "User information is incorrect"},
@@ -51,5 +51,6 @@ func Errors() ErrorId {
 		E18: ErrorContent{Code: "e18", Message: "The token is no longer valid"},
 		E19: ErrorContent{Code: "e19", Message: "No OTP is necessary for this process"},
 		E20: ErrorContent{Code: "e20", Message: "There is an issue with your email configuration"},
+		E21: ErrorContent{Code: "e21", Message: "Resending the OTP is currently not possible"},
 	}
 }
