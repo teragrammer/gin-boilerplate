@@ -23,7 +23,7 @@ func TestGenerateRandomNumber(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	assert.Equal(t, len(random), keyLength)
 }
 
