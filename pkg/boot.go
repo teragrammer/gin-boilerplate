@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"gin-boilerplate/configs"
 	"gin-boilerplate/database"
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,6 @@ import (
 func InitBoot(envPath string, overrideEnv *string) configs.BootHandlers {
 	// prepare the configuration file
 	absEnvPath, err := filepath.Abs(envPath)
-	fmt.Println("path.data", absEnvPath, envPath)
 	if err != nil {
 		log.Println("Error during Unmarshal(): ", err)
 	}
