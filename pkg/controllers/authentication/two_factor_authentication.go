@@ -25,7 +25,7 @@ func (controller *TFAController) Send(c *gin.Context) {
 	// check if tfa is required
 	// to save resources
 	if credential.(middlewares.Credential).Token.IsTFARequired != nil && credential.(middlewares.Credential).Token.IsTFARequired.Valid &&
-		credential.(middlewares.Credential).Token.IsTFARequired.Bool {
+		!credential.(middlewares.Credential).Token.IsTFARequired.Bool {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 			"code":    configs.Errors().E19.Code,
 			"message": configs.Errors().E19.Message,
@@ -34,7 +34,8 @@ func (controller *TFAController) Send(c *gin.Context) {
 	}
 
 	// check if user has valid email
-	if credential.(middlewares.Credential).User.Email != nil {
+	if credential.(middlewares.Credential).User.Email == nil ||
+		credential.(middlewares.Credential).User.Email.Valid == false {
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 			"code":    configs.Errors().E20.Code,
 			"message": configs.Errors().E20.Message,
@@ -97,5 +98,6 @@ func (controller *TFAController) Send(c *gin.Context) {
 }
 
 func (controller *TFAController) Validate(c *gin.Context) {
-
+	// TODO
+	// add functionality
 }
