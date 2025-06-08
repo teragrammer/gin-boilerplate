@@ -1,4 +1,4 @@
-package testutilities
+package tester
 
 import (
 	"gin-boilerplate/configs"
