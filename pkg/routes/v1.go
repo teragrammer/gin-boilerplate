@@ -14,7 +14,7 @@ func V1Routes(h configs.BootHandlers) {
 		api.GET("/logout", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), authentication.Logout(h))
 
-		api.POST("/tfa/send", middlewares.ApplicationKeyMiddleware(h),
+		api.GET("/tfa/send", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewTFAController(h).Send)
 		api.POST("/tfa/validate", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewTFAController(h).Validate)
