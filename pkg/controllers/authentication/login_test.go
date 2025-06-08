@@ -103,9 +103,8 @@ func TestLogoutHttp(t *testing.T) {
 	req.Header.Set("Authorization", TestAuthentication.token)
 	bootstrap.Engine.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-
 	if http.StatusOK != w.Code {
 		fmt.Println("Err Body", w.Body.String())
 	}
+	assert.Equal(t, http.StatusOK, w.Code)
 }
