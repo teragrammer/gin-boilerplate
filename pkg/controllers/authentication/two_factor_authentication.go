@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"gin-boilerplate/configs"
 	"gin-boilerplate/database/migration"
+	"gin-boilerplate/internal/handlers"
 	"gin-boilerplate/internal/utilities"
 	"gin-boilerplate/pkg/middlewares"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -98,6 +100,100 @@ func (controller *TFAController) Send(c *gin.Context) {
 }
 
 func (controller *TFAController) Validate(c *gin.Context) {
-	// TODO
-	// add functionality
+	var form struct {
+		Code string `form:"code" validate:"required" json:"code"`
+	}
+
+	e := handlers.ValidationHandler(c, &form)
+	if e != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, e)
+		return
+	}
+
+	credential, _ := c.Get("credential")
+
+	// check if tfa is required
+	// to save resources
+	if credential.(middlewares.Credential).Token.IsTFARequired != nil && credential.(middlewares.Credential).Token.IsTFARequired.Valid &&
+		!credential.(middlewares.Credential).Token.IsTFARequired.Bool {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"code":    configs.Errors().E19.Code,
+			"message": configs.Errors().E19.Message,
+		})
+		return
+	}
+
+	var tfa migration.TwoFactorAuthentication
+	if err := controller.h.DB.Where("token_id", credential.(middlewares.Credential).Token.Id).First(&tfa).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+			"code":    configs.Errors().E9.Code,
+			"message": configs.Errors().E9.Message,
+		})
+		return
+	}
+
+	// check for expiration
+	if tfa.ExpiredAt != nil && tfa.ExpiredAt.Valid {
+		if time.Now().Unix() > tfa.ExpiredAt.Time.Unix() {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+				"code":    configs.Errors().E22.Code,
+				"message": configs.Errors().E22.Message,
+			})
+			return
+		}
+	}
+
+	if tfa.ExpiredTriesAt != nil && tfa.ExpiredTriesAt.Valid {
+		// multiple pending tries
+		if time.Now().Unix() < tfa.ExpiredTriesAt.Time.Unix() {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+				"code":    configs.Errors().E23.Code,
+				"message": configs.Errors().E23.Message,
+			})
+			return
+		}
+
+		// reset the tries
+		controller.h.DB.Model(&migration.TwoFactorAuthentication{}).Where("id = ?", tfa.Id).
+			Updates(migration.TwoFactorAuthentication{
+				Tries:          0,
+				ExpiredTriesAt: &utilities.NullTime{NullTime: sql.NullTime{Valid: false}},
+			})
+	}
+
+	// too many failed tries
+	if tfa.Tries > 5 {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E23.Code,
+			"message": configs.Errors().E23.Message,
+		})
+		return
+	}
+
+	_, err := utilities.VerifyHash(form.Code, tfa.Code)
+	if err != nil {
+		// record number of tries
+		controller.h.DB.Model(&migration.TwoFactorAuthentication{}).
+			Where("id = ?", tfa.Id).
+			UpdateColumn("tries", gorm.Expr("tries + 1"))
+
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E24.Code,
+			"message": configs.Errors().E24.Message,
+		})
+		return
+	}
+
+	// update the authentication
+	controller.h.DB.Model(&migration.AuthenticationToken{}).Where("id = ?", tfa.Id).
+		Updates(migration.AuthenticationToken{
+			IsTFAVerified: &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: true}},
+		})
+
+	// delete the tfa
+	controller.h.DB.Where("id = ?", tfa.Id).Delete(&migration.TwoFactorAuthentication{})
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+	})
 }
