@@ -27,6 +27,9 @@ type ErrorId struct {
 	E19 ErrorContent
 	E20 ErrorContent
 	E21 ErrorContent
+	E22 ErrorContent
+	E23 ErrorContent
+	E24 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -52,5 +55,8 @@ func Errors() ErrorId {
 		E19: ErrorContent{Code: "e19", Message: "No OTP is necessary for this process"},
 		E20: ErrorContent{Code: "e20", Message: "There is an issue with your email configuration"},
 		E21: ErrorContent{Code: "e21", Message: "Resending the OTP is currently not possible"},
+		E22: ErrorContent{Code: "e22", Message: "There is an issue with the expiration configuration"},
+		E23: ErrorContent{Code: "e23", Message: "The system has detected too many incorrect attempts"},
+		E24: ErrorContent{Code: "e24", Message: "The OTP provided does not match our records"},
 	}
 }
