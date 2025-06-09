@@ -9,6 +9,7 @@ import (
 	"gin-boilerplate/pkg/middlewares"
 	"gin-boilerplate/pkg/repositories"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"time"
 )
@@ -74,7 +75,9 @@ func Login(h configs.BootHandlers) func(c *gin.Context) {
 		_, err = utilities.VerifyHash(form.Password, user.Password)
 		if err != nil {
 			// increase the login attempt failed
-			h.DB.Exec("UPDATE users SET login_tries = login_tries + 1 WHERE id = ?", user.Id)
+			h.DB.Model(&migration.User{}).
+				Where("id = ?", user.Id).
+				UpdateColumn("login_tries", gorm.Expr("login_tries + 1"))
 
 			totalLoginTries := user.LoginTries + 1
 			if totalLoginTries >= uint(settings.MxLogTry) {
