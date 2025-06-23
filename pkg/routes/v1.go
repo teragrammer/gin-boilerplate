@@ -18,5 +18,8 @@ func V1Routes(h configs.BootHandlers) {
 			middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewTFAController(h).Send)
 		api.POST("/tfa/validate", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewTFAController(h).Validate)
+
+		api.GET("/password-recovery/send", middlewares.ApplicationKeyMiddleware(h), authentication.NewPasswordRecoveryController(h).Send)
+		api.POST("/password-recovery/validate", middlewares.ApplicationKeyMiddleware(h), authentication.NewPasswordRecoveryController(h).Validate)
 	}
 }
