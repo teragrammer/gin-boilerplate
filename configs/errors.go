@@ -30,6 +30,8 @@ type ErrorId struct {
 	E22 ErrorContent
 	E23 ErrorContent
 	E24 ErrorContent
+	E25 ErrorContent
+	E26 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -58,5 +60,7 @@ func Errors() ErrorId {
 		E22: ErrorContent{Code: "e22", Message: "There is an issue with the expiration configuration"},
 		E23: ErrorContent{Code: "e23", Message: "The system has detected too many incorrect attempts"},
 		E24: ErrorContent{Code: "e24", Message: "The OTP provided does not match our records"},
+		E25: ErrorContent{Code: "e25", Message: "Please try to resend again later"},
+		E26: ErrorContent{Code: "e26", Message: "Unable to generate recovery code"},
 	}
 }
