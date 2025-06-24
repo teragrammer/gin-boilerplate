@@ -14,6 +14,7 @@ func RunMigrations() {
 		&migration.Setting{},
 		&migration.Role{},
 		&migration.User{},
+		&migration.PasswordRecovery{},
 		&migration.AuthenticationToken{},
 		&migration.TwoFactorAuthentication{},
 	)
