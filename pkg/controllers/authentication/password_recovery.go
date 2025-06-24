@@ -1,10 +1,14 @@
 package authentication
 
 import (
+	"database/sql"
 	"gin-boilerplate/configs"
+	"gin-boilerplate/database/migration"
 	"gin-boilerplate/internal/handlers"
+	"gin-boilerplate/internal/utilities"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 type PasswordRecoveryController struct {
@@ -14,6 +18,11 @@ type PasswordRecoveryController struct {
 func NewPasswordRecoveryController(h configs.BootHandlers) *PasswordRecoveryController {
 	return &PasswordRecoveryController{h: h}
 }
+
+const CodeLength = 6
+
+const NextResendMinutes = 2
+const CodeExpirationMinutes = 30
 
 func (controller *PasswordRecoveryController) Send(c *gin.Context) {
 	var form struct {
@@ -36,6 +45,66 @@ func (controller *PasswordRecoveryController) Send(c *gin.Context) {
 		})
 		return
 	}
+
+	var user migration.User
+	if err := controller.h.DB.Where(*extracted.name, *extracted.value).First(&user).Error; err != nil {
+		var fieldName = *extracted.name
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler(fieldName, "Unable to find "+fieldName))
+		return
+	}
+
+	var recovery migration.PasswordRecovery
+	if err := controller.h.DB.Where("send_to", *extracted.value).First(&recovery).Error; err == nil {
+		if recovery.NextResendAt.Unix() > time.Now().Unix() {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+				"code":    configs.Errors().E25.Code,
+				"message": configs.Errors().E25.Message,
+			})
+			return
+		}
+	}
+
+	var code, err = utilities.GenerateRandomString(CodeLength)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E26.Code,
+			"message": configs.Errors().E26.Message,
+		})
+		return
+	}
+
+	hashedCode, err := utilities.Hash(code)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E26.Code,
+			"message": configs.Errors().E26.Message,
+		})
+		return
+	}
+
+	var _type = migration.Email
+	if *extracted.name == "phone" {
+		_type = migration.Phone
+	}
+	controller.h.DB.Where("send_to = ?", *extracted.value).Delete(&migration.PasswordRecovery{})
+	var recoveryData = migration.PasswordRecovery{
+		Type:         _type,
+		SendTo:       &utilities.NullString{NullString: sql.NullString{Valid: true, String: *extracted.value}},
+		Code:         hashedCode,
+		NextResendAt: utilities.AddDay(time.Now(), NextResendMinutes),
+		ExpiredAt:    utilities.AddDay(time.Now(), CodeExpirationMinutes),
+	}
+	if err := controller.h.DB.Create(&recoveryData).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    configs.Errors().E26.Code,
+			"message": configs.Errors().E26.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"result": true,
+	})
 }
 
 func (controller *PasswordRecoveryController) Validate(c *gin.Context) {
