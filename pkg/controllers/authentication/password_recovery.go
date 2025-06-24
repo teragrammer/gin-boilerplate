@@ -102,6 +102,9 @@ func (controller *PasswordRecoveryController) Send(c *gin.Context) {
 		return
 	}
 
+	// TODO
+	// send code to email or phone
+
 	c.JSON(http.StatusOK, gin.H{
 		"result": true,
 	})
