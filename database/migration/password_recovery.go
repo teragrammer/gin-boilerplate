@@ -22,7 +22,7 @@ type PasswordRecovery struct {
 	NextResendAt time.Time             `gorm:"type:datetime" json:"next_resend_at"`
 	ExpiredAt    time.Time             `gorm:"type:datetime" json:"expired_at"`
 	Tries        uint                  `gorm:"default:0" json:"tries"`
-	NextTryAt    time.Time             `gorm:"type:datetime" json:"next_try_at"`
+	NextTryAt    *utilities.NullTime   `gorm:"type:datetime" json:"next_try_at"`
 	CreatedAt    time.Time             `gorm:"type:datetime" json:"created_at"`
 	UpdatedAt    time.Time             `gorm:"type:datetime" json:"updated_at"`
 }
