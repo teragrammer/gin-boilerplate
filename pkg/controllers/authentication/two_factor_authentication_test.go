@@ -25,7 +25,7 @@ type TestTwoFactoAuthenticationModel struct {
 
 var TestTwoFactoAuthentication = TestTwoFactoAuthenticationModel{}
 
-func TestTwoFactoAuthenticationSetupHttp(t *testing.T) {
+func TestTwoFactoAuthenticationSetup(t *testing.T) {
 	var env = "test"
 	var bootstrap = pkg.InitBoot("../../../env.json", &env)
 
