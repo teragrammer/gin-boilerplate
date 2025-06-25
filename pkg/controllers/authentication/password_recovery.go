@@ -26,7 +26,7 @@ const CodeExpirationMinutes = 30
 
 func (controller *PasswordRecoveryController) Send(c *gin.Context) {
 	var form struct {
-		To    string  `form:"to" validate:"required,oneof:email phone" json:"to"`
+		To    string  `form:"to" validate:"required,oneof=email phone" json:"to"`
 		Email *string `form:"email" validate:"omitempty,email" json:"email"`
 		Phone *string `form:"phone" validate:"omitempty,phone=PH" json:"phone"`
 	}
