@@ -170,8 +170,8 @@ func (controller *TFAController) Validate(c *gin.Context) {
 		return
 	}
 
-	_, err := utilities.VerifyHash(form.Code, tfa.Code)
-	if err != nil {
+	verified, err := utilities.VerifyHash(form.Code, tfa.Code)
+	if err != nil || !verified {
 		// record number of tries
 		controller.h.DB.Model(&migration.TwoFactorAuthentication{}).
 			Where("id = ?", tfa.Id).
