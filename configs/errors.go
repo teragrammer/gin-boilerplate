@@ -32,6 +32,8 @@ type ErrorId struct {
 	E24 ErrorContent
 	E25 ErrorContent
 	E26 ErrorContent
+	E27 ErrorContent
+	E28 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -62,5 +64,7 @@ func Errors() ErrorId {
 		E24: ErrorContent{Code: "e24", Message: "The OTP provided does not match our records"},
 		E25: ErrorContent{Code: "e25", Message: "Please try to resend again later"},
 		E26: ErrorContent{Code: "e26", Message: "Unable to generate recovery code"},
+		E27: ErrorContent{Code: "e27", Message: "Recovery tries exceeded maximum limit"},
+		E28: ErrorContent{Code: "e28", Message: "The provided recovery code is invalid"},
 	}
 }
