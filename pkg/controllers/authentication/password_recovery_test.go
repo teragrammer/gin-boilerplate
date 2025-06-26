@@ -67,3 +67,39 @@ func TestTPasswordRecoverySendHttp(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestTPasswordRecoverySendHttpFailed(t *testing.T) {
+	var env = "test"
+	var bootstrap = pkg.InitBoot("../../../env.json", &env)
+
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	// routes
+	routes.V1Routes(bootstrap)
+
+	// Create a new multipart writer
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add other fields
+	_ = writer.WriteField("to", "email")
+	_ = writer.WriteField("email", TestPasswordRecover.user.Email.String)
+
+	// Close multipart writer
+	err := writer.Close()
+	if err != nil {
+		t.Error("Error closing writer:", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/v1/password-recovery/send", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("X-Secret-Key", bootstrap.Env.App.Key)
+	bootstrap.Engine.ServeHTTP(w, req)
+
+	if http.StatusUnprocessableEntity != w.Code {
+		fmt.Println("Err Body", w.Body.String())
+	}
+	assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+}
