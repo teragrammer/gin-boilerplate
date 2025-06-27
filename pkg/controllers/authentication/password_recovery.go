@@ -139,14 +139,12 @@ func (controller *PasswordRecoveryController) Validate(c *gin.Context) {
 	}
 
 	var recovery migration.PasswordRecovery
-	if err := controller.h.DB.Where("send_to", *extracted.value).First(&recovery).Error; err == nil {
-		if recovery.NextResendAt.Unix() > time.Now().Unix() {
-			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-				"code":    configs.Errors().E25.Code,
-				"message": configs.Errors().E25.Message,
-			})
-			return
-		}
+	if err := controller.h.DB.Where("send_to", *extracted.value).First(&recovery).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
+			"code":    *extracted.name,
+			"message": "Unable to find " + *extracted.name,
+		})
+		return
 	}
 
 	if recovery.Tries >= MaxTries {
