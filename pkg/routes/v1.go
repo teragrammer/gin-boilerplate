@@ -21,5 +21,8 @@ func V1Routes(h configs.BootHandlers) {
 
 		api.POST("/password-recovery/send", middlewares.ApplicationKeyMiddleware(h), authentication.NewPasswordRecoveryController(h).Send)
 		api.POST("/password-recovery/validate", middlewares.ApplicationKeyMiddleware(h), authentication.NewPasswordRecoveryController(h).Validate)
+
+		api.PATCH("/account/information", middlewares.ApplicationKeyMiddleware(h), middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewAccountController(h).Information)
+		api.PATCH("/account/password", middlewares.ApplicationKeyMiddleware(h), middlewares.AuthenticateTokenMiddleware(h, true), authentication.NewAccountController(h).Password)
 	}
 }
