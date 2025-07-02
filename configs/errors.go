@@ -34,6 +34,7 @@ type ErrorId struct {
 	E26 ErrorContent
 	E27 ErrorContent
 	E28 ErrorContent
+	E29 ErrorContent
 }
 
 func Errors() ErrorId {
@@ -66,5 +67,6 @@ func Errors() ErrorId {
 		E26: ErrorContent{Code: "e26", Message: "Unable to generate recovery code"},
 		E27: ErrorContent{Code: "e27", Message: "Recovery tries exceeded maximum limit"},
 		E28: ErrorContent{Code: "e28", Message: "The provided recovery code is invalid"},
+		E29: ErrorContent{Code: "e29", Message: "The credentials provided do not match our records"},
 	}
 }
