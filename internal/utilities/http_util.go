@@ -3,8 +3,11 @@ package utilities
 import (
 	"github.com/gin-gonic/gin"
 	"net"
+	"strconv"
 	"strings"
 )
+
+var MaxLimitNoPagination = 500
 
 /**
 # Configure Nginx: Ensure that Nginx is set up to pass the X-Forwarded-For header.
@@ -42,4 +45,14 @@ func GetClientIP(c *gin.Context) string {
 		return c.Request.RemoteAddr
 	}
 	return ip
+}
+
+func Paginate(c *gin.Context) (int, int, int) {
+	// Define default pagination values
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))           // default page is 1
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "12")) // default pageSize is 10
+	// Calculate offset for pagination
+	offset := (page - 1) * pageSize
+
+	return page, pageSize, offset
 }
