@@ -17,17 +17,30 @@ type SettingKeyValueInterface struct {
 	TtaEmlSbj string `gorm:"tfa_eml_sbj"` // TFA Email Subject
 }
 
-func Settings(DB *gorm.DB, slugs []string) (*SettingKeyValueInterface, error) {
+func Settings(DB *gorm.DB, slugs []string, isPublic *string) (*SettingKeyValueInterface, error) {
 	var settings []migration.Setting
 	var keyValue SettingKeyValueInterface
-	if err := DB.Find(&settings).Error; err != nil {
+
+	query := DB
+
+	// default list all settings
+	if isPublic != nil {
+		if *isPublic == "private" {
+			query.Where("is_public = ?", 0)
+		}
+		if *isPublic == "public" {
+			query.Where("is_public = ?", 1)
+		}
+	}
+
+	if err := query.Find(&settings).Error; err != nil {
 		return nil, err
 	}
 
 	for i := 0; i < len(settings); i++ {
 		var slug = settings[i].Slug
 		var found = utilities.IsStringValueExistOnArray(slugs, &slug)
-		if found {
+		if found || len(slugs) == 0 {
 			switch slug {
 			case "mx_log_try":
 				keyValue.MxLogTry = settings[i].ConvertValue().(int64)
