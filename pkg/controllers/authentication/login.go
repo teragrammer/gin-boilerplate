@@ -63,7 +63,7 @@ func Login(h configs.BootHandlers) func(c *gin.Context) {
 		settings, err := repositories.Settings(h.DB, []string{
 			"mx_log_try", "lck_prd",
 			"tkn_lth", "tkn_exp", "tfa_req",
-		})
+		}, nil)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"code":    configs.Errors().E8.Code,

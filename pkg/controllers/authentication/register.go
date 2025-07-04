@@ -31,7 +31,7 @@ func Register(h configs.BootHandlers) func(c *gin.Context) {
 			return
 		}
 
-		settings, err := repositories.Settings(h.DB, settingSlugs)
+		settings, err := repositories.Settings(h.DB, settingSlugs, nil)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"code":    configs.Errors().E8.Code,
