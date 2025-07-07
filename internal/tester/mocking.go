@@ -27,7 +27,7 @@ func GenerateAuthentication(h configs.BootHandlers, slug string, username string
 
 	settings, _ := repositories.Settings(h.DB, []string{
 		"tkn_lth", "tkn_exp", "tfa_req",
-	})
+	}, nil)
 
 	token, _ := repositories.GenerateToken(h.DB, settings, user.Id)
 
