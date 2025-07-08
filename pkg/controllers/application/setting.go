@@ -134,8 +134,9 @@ func (controller *SettingController) Create(c *gin.Context) {
 		IsDisabled:  &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isDisabled}},
 		IsPublic:    &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isPublic}},
 	}
+
 	if err := controller.h.DB.
-		Create(setting).Error; err != nil {
+		Create(&setting).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
@@ -143,7 +144,9 @@ func (controller *SettingController) Create(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, setting.Id)
+	c.JSON(http.StatusOK, gin.H{
+		"data": setting.Id,
+	})
 }
 
 func (controller *SettingController) Update(c *gin.Context) {
