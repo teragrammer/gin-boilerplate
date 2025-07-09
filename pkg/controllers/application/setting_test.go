@@ -205,7 +205,7 @@ func TestUpdateSettingHttp(t *testing.T) {
 	assert.Equal(t, "test_value", setting.Value.String)
 }
 
-func TestLogoutHttp(t *testing.T) {
+func TestSettingBrowseHttp(t *testing.T) {
 	var env = "test"
 	var bootstrap = pkg.InitBoot("../../../env.json", &env)
 
