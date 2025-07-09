@@ -102,8 +102,6 @@ func TestCreateSettingHttp(t *testing.T) {
 	// Add other fields
 	_ = writer.WriteField("name", "test")
 	_ = writer.WriteField("slug", "test_abc")
-	_ = writer.WriteField("value", "test_value")
-	_ = writer.WriteField("description", "test_description")
 	_ = writer.WriteField("type", "string")
 	_ = writer.WriteField("is_disabled", "1")
 	_ = writer.WriteField("is_public", "1")
