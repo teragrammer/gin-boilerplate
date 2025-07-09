@@ -67,7 +67,7 @@ func (controller *SettingController) Values(c *gin.Context) {
 	visibility := "public"
 	settings, err := repositories.Settings(controller.h.DB, []string{}, &visibility)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
 		})
@@ -211,7 +211,7 @@ func (controller *SettingController) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := controller.h.DB.
 		Where("id = ?", id).
-		Delete(&migration.AuthenticationToken{}).Error; err != nil {
+		Delete(&migration.Setting{}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
