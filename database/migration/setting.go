@@ -37,10 +37,10 @@ func (s *Setting) ConvertValue() interface{} {
 	switch strings.ToLower(s.Type) {
 	case "string":
 		if s.Value == nil {
-			return nil
+			return ""
 		}
 		if s.Value.Valid == false {
-			return nil
+			return ""
 		}
 		return s.Value.String
 	case "integer":
