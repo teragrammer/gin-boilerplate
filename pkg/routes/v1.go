@@ -35,7 +35,7 @@ func V1Routes(h configs.BootHandlers) {
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).View)
 		api.POST("/settings", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Create)
-		api.PATCH("/settings", middlewares.ApplicationKeyMiddleware(h),
+		api.PATCH("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Update)
 		api.DELETE("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Delete)
