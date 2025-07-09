@@ -57,7 +57,7 @@ func Settings(DB *gorm.DB, slugs []string, isPublic *string) (*SettingKeyValueIn
 			case "tfa_eml_sbj":
 				keyValue.TtaEmlSbj = settings[i].ConvertValue().(string)
 			default:
-				return nil, errors.New("invalid slug key name")
+				return nil, errors.New("invalid slug key name, " + slug)
 			}
 		}
 	}
