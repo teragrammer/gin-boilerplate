@@ -39,5 +39,16 @@ func V1Routes(h configs.BootHandlers) {
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Update)
 		api.DELETE("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Delete)
+
+		api.GET("/roles", middlewares.ApplicationKeyMiddleware(h),
+			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Browse)
+		api.GET("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
+			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).View)
+		api.POST("/roles", middlewares.ApplicationKeyMiddleware(h),
+			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Create)
+		api.PATCH("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
+			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Update)
+		api.DELETE("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
+			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Delete)
 	}
 }
