@@ -182,3 +182,25 @@ func TestRoleBrowseHttp(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestRoleViewHttp(t *testing.T) {
+	var env = "test"
+	var bootstrap = pkg.InitBoot("../../../env.json", &env)
+
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	// routes
+	routes.V1Routes(bootstrap)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/v1/roles/"+strconv.Itoa(int(TestRole.id)), nil)
+	req.Header.Set("X-Secret-Key", bootstrap.Env.App.Key)
+	req.Header.Set("Authorization", TestRole.token.Token)
+	bootstrap.Engine.ServeHTTP(w, req)
+
+	if http.StatusOK != w.Code {
+		fmt.Println("Err Body", w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
