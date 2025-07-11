@@ -85,9 +85,9 @@ func (controller *RoleController) Create(c *gin.Context) {
 		Name        string  `form:"name" validate:"required,min=1,max=100" json:"name"`
 		Description *string `form:"description" validate:"omitempty,min=1,max=200" json:"description"`
 		Slug        string  `form:"slug" validate:"required,min=1,max=100" json:"slug"`
-		Rank        uint    `form:"rank" validate:"required,numeric,regexp=^[0-9]+$" json:"rank"`
-		IsDisabled  int     `form:"is_disabled" validate:"required,oneof=0 1" json:"is_disabled"`
-		IsActive    int     `form:"is_active" validate:"required,oneof=0 1" json:"is_active"`
+		Rank        uint    `form:"rank" validate:"required,numeric" json:"rank"`
+		IsDisabled  *int    `form:"is_disabled" validate:"required,oneof=0 1" json:"is_disabled"`
+		IsActive    *int    `form:"is_active" validate:"required,oneof=0 1" json:"is_active"`
 	}
 
 	e := handlers.ValidationHandler(c, &form)
@@ -106,8 +106,8 @@ func (controller *RoleController) Create(c *gin.Context) {
 		return
 	}
 
-	var isDisabled = form.IsDisabled == 1
-	var isActive = form.IsActive == 1
+	var isDisabled = *form.IsDisabled == 1
+	var isActive = *form.IsActive == 1
 
 	var role = migration.Role{
 		Name:        form.Name,
