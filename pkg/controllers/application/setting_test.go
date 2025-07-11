@@ -222,9 +222,6 @@ func TestSettingDeleteHttp(t *testing.T) {
 	req.Header.Set("Authorization", TestSetting.token.Token)
 	bootstrap.Engine.ServeHTTP(w, req)
 
-	var setting = migration.Setting{}
-	bootstrap.DB.Where("id = ?", strconv.Itoa(int(TestSetting.id))).First(&setting)
-
 	if http.StatusOK != w.Code {
 		fmt.Println("Err Body", w.Body.String())
 	}
