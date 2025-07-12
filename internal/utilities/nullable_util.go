@@ -202,3 +202,18 @@ func ValueOfNullString(value *string) *NullString {
 	}
 	return &NullString{NullString: sql.NullString{Valid: false}}
 }
+
+func ParseValueOfNullNullTime(value *string, layout string) *NullTime {
+	// Parse the datetime string into a time.Time object
+	// Layout string that matches the format of datetimeStr
+	if value != nil {
+		timeLayout, err := time.Parse(layout, *value)
+		if err != nil {
+			return &NullTime{NullTime: sql.NullTime{Valid: false}}
+		}
+
+		return &NullTime{NullTime: sql.NullTime{Time: timeLayout, Valid: true}}
+	}
+
+	return &NullTime{NullTime: sql.NullTime{Valid: false}}
+}
