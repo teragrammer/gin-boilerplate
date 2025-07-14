@@ -95,6 +95,8 @@ func (controller *ManageUserController) Create(c *gin.Context) {
 		IsPhoneVerified *int    `form:"is_phone_verified" validate:"required,oneof=0 1" json:"is_phone_verified"`
 		Email           *string `form:"email" validate:"omitempty,email" json:"email"`
 		IsEmailVerified *int    `form:"is_email_verified" validate:"required,oneof=0 1" json:"is_email_verified"`
+		Username        string  `form:"username" validate:"required,max=32,alphanum" json:"username"`
+		Password        string  `form:"password" validate:"required,min=6,max=28,password" json:"password"`
 		RoleId          uint    `form:"role_id" validate:"required,numeric" json:"role_id"`
 	}
 
@@ -106,18 +108,47 @@ func (controller *ManageUserController) Create(c *gin.Context) {
 
 	// check if phone already exists
 	var _phone migration.User
-	if err := controller.h.DB.Where("phone", form.Phone).First(&_phone).Error; err == nil {
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    configs.Errors().E5.Code,
-			"message": configs.Errors().E5.Message,
-		})
+	if form.Phone != nil {
+		if err := controller.h.DB.Where("phone", *form.Phone).First(&_phone).Error; err == nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("phone", configs.Errors().E5.Message))
+			return
+		}
+	}
+
+	// check if email already exists
+	var _email migration.User
+	if form.Email != nil {
+		if err := controller.h.DB.Where("email", *form.Email).First(&_email).Error; err == nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("email", configs.Errors().E5.Message))
+			return
+		}
+	}
+
+	// check if username already exists
+	var _username migration.User
+	if err := controller.h.DB.Where("username", form.Username).First(&_username).Error; err == nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("username", configs.Errors().E5.Message))
+		return
+	}
+
+	// check if role exists
+	var _role migration.Role
+	if err := controller.h.DB.Where("id", form.RoleId).First(&_role).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, handlers.ErrorHandler("role_id", configs.Errors().E9.Message))
+		return
+	}
+
+	// hash password
+	hash, err := utilities.Hash(form.Password + controller.h.Env.Security.HashSecret)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("password", configs.Errors().E5.Message))
 		return
 	}
 
 	var isPhoneVerified = *form.IsPhoneVerified == 1
 	var isEmailVerified = *form.IsEmailVerified == 1
 
-	var role = migration.User{
+	var user = migration.User{
 		FirstName:       form.FirstName,
 		MiddleName:      utilities.ValueOfNullString(form.MiddleName),
 		LastName:        utilities.ValueOfNullString(form.LastName),
@@ -128,11 +159,13 @@ func (controller *ManageUserController) Create(c *gin.Context) {
 		IsPhoneVerified: &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isPhoneVerified}},
 		Email:           utilities.ValueOfNullString(form.Email),
 		IsEmailVerified: &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isEmailVerified}},
+		Username:        form.Username,
+		Password:        hash,
 		RoleId:          form.RoleId,
 	}
 
 	if err := controller.h.DB.
-		Create(&role).Error; err != nil {
+		Create(&user).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
@@ -141,18 +174,25 @@ func (controller *ManageUserController) Create(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": role.Id,
+		"data": user.Id,
 	})
 }
 
 func (controller *ManageUserController) Update(c *gin.Context) {
 	var form struct {
-		Name        string  `form:"name" validate:"required,min=1,max=100" json:"name"`
-		Description *string `form:"description" validate:"omitempty,min=1,max=200" json:"description"`
-		Slug        string  `form:"slug" validate:"required,min=1,max=100" json:"slug"`
-		Rank        uint    `form:"rank" validate:"required,numeric" json:"rank"`
-		IsDisabled  *int    `form:"is_disabled" validate:"required,oneof=0 1" json:"is_disabled"`
-		IsActive    *int    `form:"is_active" validate:"required,oneof=0 1" json:"is_active"`
+		FirstName       string  `form:"first_name" validate:"required,min=1,max=100" json:"first_name"`
+		MiddleName      *string `form:"middle_name" validate:"omitempty,max=100" json:"middle_name"`
+		LastName        *string `form:"last_name" validate:"required,min=1,max=100" json:"last_name"`
+		Gender          *string `form:"gender" validate:"omitempty,oneof=Male Female" json:"gender"`
+		Address         *string `form:"address" validate:"omitempty,max=100" json:"address"`
+		BirthDate       *string `form:"birth_date" validate:"omitempty,datetime=2006-01-02" json:"birth_date"`
+		Phone           *string `form:"phone" validate:"omitempty,phone=PH" json:"phone"`
+		IsPhoneVerified *int    `form:"is_phone_verified" validate:"required,oneof=0 1" json:"is_phone_verified"`
+		Email           *string `form:"email" validate:"omitempty,email" json:"email"`
+		IsEmailVerified *int    `form:"is_email_verified" validate:"required,oneof=0 1" json:"is_email_verified"`
+		Username        string  `form:"username" validate:"required,max=32,alphanum" json:"username"`
+		Password        *string `form:"password" validate:"omitempty,min=6,max=28,password" json:"password"`
+		RoleId          uint    `form:"role_id" validate:"required,numeric" json:"role_id"`
 	}
 
 	e := handlers.ValidationHandler(c, &form)
@@ -161,34 +201,79 @@ func (controller *ManageUserController) Update(c *gin.Context) {
 		return
 	}
 
-	// check if slug already exists
 	id := c.Param("id")
-	var _role migration.Role
-	if err := controller.h.DB.
+
+	// check if phone already exists
+	var _phone migration.User
+	if form.Phone != nil {
+		if err := controller.h.DB.Where("phone", *form.Phone).
+			Where("id <> ?", id).
+			First(&_phone).Error; err == nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("phone", configs.Errors().E5.Message))
+			return
+		}
+	}
+
+	// check if email already exists
+	var _email migration.User
+	if form.Email != nil {
+		if err := controller.h.DB.Where("email", *form.Email).
+			Where("id <> ?", id).
+			First(&_email).Error; err == nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("email", configs.Errors().E5.Message))
+			return
+		}
+	}
+
+	// check if username already exists
+	var _username migration.User
+	if err := controller.h.DB.Where("username", form.Username).
 		Where("id <> ?", id).
-		Where("slug", form.Slug).
-		First(&_role).Error; err == nil {
-		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    configs.Errors().E5.Code,
-			"message": configs.Errors().E5.Message,
-		})
+		First(&_username).Error; err == nil {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("username", configs.Errors().E5.Message))
 		return
 	}
 
-	var isDisabled = *form.IsDisabled == 1
-	var isActive = *form.IsActive == 1
-
-	var role = migration.Role{
-		Name:        form.Name,
-		Description: utilities.ValueOfNullString(form.Description),
-		Slug:        form.Slug,
-		Rank:        form.Rank,
-		IsPublic:    &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isDisabled}},
-		IsActive:    &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isActive}},
+	// check if role exists
+	var _role migration.Role
+	if err := controller.h.DB.Where("id", form.RoleId).
+		First(&_role).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, handlers.ErrorHandler("role_id", configs.Errors().E9.Message))
+		return
 	}
+
+	var isPhoneVerified = *form.IsPhoneVerified == 1
+	var isEmailVerified = *form.IsEmailVerified == 1
+
+	var user = migration.User{
+		FirstName:       form.FirstName,
+		MiddleName:      utilities.ValueOfNullString(form.MiddleName),
+		LastName:        utilities.ValueOfNullString(form.LastName),
+		Gender:          utilities.ValueOfNullString(form.Gender),
+		Address:         utilities.ValueOfNullString(form.Address),
+		BirthDate:       utilities.ParseValueOfNullNullTime(form.BirthDate, "2006-01-02"),
+		Phone:           utilities.ValueOfNullString(form.Phone),
+		IsPhoneVerified: &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isPhoneVerified}},
+		Email:           utilities.ValueOfNullString(form.Email),
+		IsEmailVerified: &utilities.NullBool{NullBool: sql.NullBool{Valid: true, Bool: isEmailVerified}},
+		Username:        form.Username,
+		RoleId:          form.RoleId,
+	}
+
+	// hash password
+	if form.Password != nil {
+		hash, err := utilities.Hash(*form.Password + controller.h.Env.Security.HashSecret)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnprocessableEntity, handlers.ErrorHandler("password", configs.Errors().E5.Message))
+			return
+		}
+
+		user.Password = hash
+	}
+
 	if err := controller.h.DB.
 		Where("id = ?", id).
-		Updates(role).Error; err != nil {
+		Updates(user).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
@@ -205,7 +290,7 @@ func (controller *ManageUserController) Delete(c *gin.Context) {
 	id := c.Param("id")
 	if err := controller.h.DB.
 		Where("id = ?", id).
-		Delete(&migration.Role{}).Error; err != nil {
+		Delete(&migration.User{}).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"code":    configs.Errors().E7.Code,
 			"message": configs.Errors().E7.Message,
