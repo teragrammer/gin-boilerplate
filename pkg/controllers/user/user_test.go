@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -101,5 +102,54 @@ func TestCreateUserHttp(t *testing.T) {
 	TestUser.id = user.Id
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "test f", user.FirstName)
+	assert.Equal(t, "testuser", user.Username)
+}
+
+func TestUpdateUserHttp(t *testing.T) {
+	var env = "test"
+	var bootstrap = pkg.InitBoot("../../../env.json", &env)
+
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	// routes
+	routes.V1Routes(bootstrap)
+
+	// Create a new multipart writer
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Add other fields
+	_ = writer.WriteField("first_name", "test updated")
+	_ = writer.WriteField("last_name", "test l")
+	_ = writer.WriteField("is_phone_verified", "1")
+	_ = writer.WriteField("is_email_verified", "1")
+	_ = writer.WriteField("username", "testuser")
+	_ = writer.WriteField("password", "ABC123!@#abc")
+	_ = writer.WriteField("role_id", "1")
+
+	// Close multipart writer
+	err := writer.Close()
+	if err != nil {
+		t.Error("Error closing writer:", err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PATCH", "/v1/users/"+strconv.Itoa(int(TestUser.id)), body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("X-Secret-Key", bootstrap.Env.App.Key)
+	req.Header.Set("Authorization", TestUser.token.Token)
+	bootstrap.Engine.ServeHTTP(w, req)
+
+	if http.StatusOK != w.Code {
+		fmt.Println("Err Body", w.Body.String())
+	}
+
+	var user = migration.User{}
+	bootstrap.DB.Where("id = ?", TestUser.id).First(&user)
+
+	TestUser.id = user.Id
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "test updated", user.FirstName)
 	assert.Equal(t, "testuser", user.Username)
 }
