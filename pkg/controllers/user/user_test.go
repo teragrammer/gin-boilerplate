@@ -153,3 +153,25 @@ func TestUpdateUserHttp(t *testing.T) {
 	assert.Equal(t, "test updated", user.FirstName)
 	assert.Equal(t, "testuser", user.Username)
 }
+
+func TestUserBrowseHttp(t *testing.T) {
+	var env = "test"
+	var bootstrap = pkg.InitBoot("../../../env.json", &env)
+
+	// Set Gin to Test mode
+	gin.SetMode(gin.TestMode)
+
+	// routes
+	routes.V1Routes(bootstrap)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/v1/users", nil)
+	req.Header.Set("X-Secret-Key", bootstrap.Env.App.Key)
+	req.Header.Set("Authorization", TestUser.token.Token)
+	bootstrap.Engine.ServeHTTP(w, req)
+
+	if http.StatusOK != w.Code {
+		fmt.Println("Err Body", w.Body.String())
+	}
+	assert.Equal(t, http.StatusOK, w.Code)
+}
