@@ -34,32 +34,32 @@ func V1Routes(h configs.BootHandlers) {
 		api.GET("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
 			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).View)
 		api.POST("/settings", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Create)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewSettingController(h).Create)
 		api.PATCH("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Update)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewSettingController(h).Update)
 		api.DELETE("/settings/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewSettingController(h).Delete)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewSettingController(h).Delete)
 
 		api.GET("/roles", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Browse)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewRoleController(h).Browse)
 		api.GET("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).View)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewRoleController(h).View)
 		api.POST("/roles", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Create)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewRoleController(h).Create)
 		api.PATCH("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Update)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewRoleController(h).Update)
 		api.DELETE("/roles/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), application.NewRoleController(h).Delete)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), application.NewRoleController(h).Delete)
 
 		api.GET("/users", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), user.NewUserController(h).Browse)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), user.NewUserController(h).Browse)
 		api.GET("/users/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), user.NewUserController(h).View)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), user.NewUserController(h).View)
 		api.POST("/users", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), user.NewUserController(h).Create)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), user.NewUserController(h).Create)
 		api.PATCH("/users/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), user.NewUserController(h).Update)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), user.NewUserController(h).Update)
 		api.DELETE("/users/:id", middlewares.ApplicationKeyMiddleware(h),
-			middlewares.AuthenticateTokenMiddleware(h, true), user.NewUserController(h).Delete)
+			middlewares.AuthenticateTokenMiddleware(h, true), middlewares.RoutePermissionMiddleware([]string{"admin"}, true), user.NewUserController(h).Delete)
 	}
 }
